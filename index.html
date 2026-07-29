@@ -130,11 +130,9 @@
       font-weight: 600;
     }
 
-    .expense-category {
+    .expense-sub {
       font-size: 0.75rem;
       color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     .expense-amount {
@@ -160,12 +158,13 @@
     
     <div class="total-card">
       <p>Total Spent</p>
-      <h2 id="totalAmount">$0.00</h2>
+      <h2 id="totalAmount">0.00</h2>
     </div>
 
     <form class="form-group" id="expenseForm">
       <input type="text" id="descInput" placeholder="What did you pay for?" required />
-      <input type="number" id="amountInput" placeholder="Amount ($)" step="0.01" min="0.01" required />
+      <input type="number" id="amountInput" placeholder="Amount" step="0.01" min="0.01" required />
+      <input type="date" id="dateInput" required />
       <select id="categorySelect">
         <option value="Food">🍔 Food & Dining</option>
         <option value="Transport">🚗 Transport</option>
@@ -182,6 +181,9 @@
   <script>
     let expenses = JSON.parse(localStorage.getItem('my_expenses')) || [];
 
+    // Set default date input to today
+    document.getElementById('dateInput').valueAsDate = new Date();
+
     function saveAndRender() {
       localStorage.setItem('my_expenses', JSON.stringify(expenses));
       renderExpenses();
@@ -191,19 +193,22 @@
       e.preventDefault();
       const desc = document.getElementById('descInput').value.trim();
       const amount = parseFloat(document.getElementById('amountInput').value);
+      const date = document.getElementById('dateInput').value;
       const category = document.getElementById('categorySelect').value;
 
-      if (!desc || isNaN(amount)) return;
+      if (!desc || isNaN(amount) || !date) return;
 
       expenses.unshift({
         id: Date.now(),
         desc,
         amount,
+        date,
         category
       });
 
       document.getElementById('descInput').value = '';
       document.getElementById('amountInput').value = '';
+      document.getElementById('dateInput').valueAsDate = new Date();
       saveAndRender();
     }
 
@@ -218,17 +223,17 @@
       list.innerHTML = '';
 
       const total = expenses.reduce((sum, item) => sum + item.amount, 0);
-      totalEl.textContent = `$${total.toFixed(2)}`;
+      totalEl.textContent = total.toFixed(2);
 
       expenses.forEach(item => {
         const li = document.createElement('li');
         li.innerHTML = `
           <div class="expense-details">
             <span class="expense-title">${item.desc}</span>
-            <span class="expense-category">${item.category}</span>
+            <span class="expense-sub">${item.date} • ${item.category}</span>
           </div>
           <div style="display:flex; align-items:center;">
-            <span class="expense-amount">-$${item.amount.toFixed(2)}</span>
+            <span class="expense-amount">-${item.amount.toFixed(2)}</span>
             <button class="delete-btn" onclick="deleteExpense(${item.id})">✕</button>
           </div>
         `;
